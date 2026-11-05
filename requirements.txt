@@ -1,0 +1,15 @@
+# 骨架本身只依赖 Python 标准库；下面这些只在接入真实实现时需要。
+# ANPR 预测（LSTM-MDN-git-ready）
+numpy
+pandas
+scipy
+scikit-learn
+pyyaml
+lightgbm
+xgboost
+matplotlib
+torch>=1.12
+# 唤醒滤波（wake-up-overshoot）
+psutil
+# 测试
+pytest

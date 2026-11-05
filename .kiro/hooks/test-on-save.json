@@ -1,0 +1,1 @@
+{"hooks":[{"action":{"command":"python scripts/check_interfaces.py","type":"command"},"description":"Runs the stdlib-only interface self-check whenever the agent saves a Python file under src/. Command hooks do not consume credits.","enabled":true,"matcher":"src/.*\\.py$","name":"Check interfaces when a source file is saved","trigger":"PostFileSave"}],"version":"v1"}

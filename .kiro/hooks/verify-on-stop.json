@@ -1,0 +1,1 @@
+{"hooks":[{"action":{"command":"python scripts/check_interfaces.py && python -m compileall -q src scripts","type":"command"},"description":"Runs the interface self-check and a compile check at the end of each agent turn. Command hooks do not consume credits.","enabled":true,"name":"Verify interfaces and compile check when the agent finishes","trigger":"Stop"}],"version":"v1"}
