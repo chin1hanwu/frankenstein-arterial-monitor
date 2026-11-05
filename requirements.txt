@@ -1,5 +1,5 @@
 # 骨架本身只依赖 Python 标准库；下面这些只在接入真实实现时需要。
-# ANPR 预测（LSTM-MDN-git-ready）
+# ANPR 预测（availability-aware-anpr-forecasting，开源版报告环境：Python 3.9、scikit-learn 1.6.1、PyTorch 2.7.1）
 numpy
 pandas
 scipy
@@ -8,7 +8,7 @@ pyyaml
 lightgbm
 xgboost
 matplotlib
-torch>=1.12
+torch
 # 唤醒滤波（wake-up-overshoot）
 psutil
 # 测试

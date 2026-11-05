@@ -4,19 +4,19 @@
 
 - 改实现之前，先改 `src/*/interfaces.py` 与 `docs/wiring.md`，保持三者一致。
 - 新功能先写进 `.kiro/specs/arterial-monitoring/tasks.md` 再动手，不做规格外的开发。
-- 数字只引用已核实来源（源仓库 README、实验输出、论文）；R3 返修后的数字以最新 R3 包为准，不凭记忆写。
+- 数字只引用已核实来源（开源仓库 README、实验输出、论文）；R3 返修后的数字以最新 R3 包为准，不凭记忆写。
 
 ## 2. 不碰的东西
 
-- 本仓库不放稿件、投稿目录与未发表内容；TR-C / SPL 稿件留在源仓库。
+- 本仓库不放稿件、投稿目录与未发表内容；TR-C / SPL 稿件留在私有仓库。
 - 不复制两个源仓库的实现代码；只通过 `config/local.yaml` 里的路径引用。
 - 不把真实数据（ANPR 原始记录、Binance aggTrades）提交进仓库；数据目录与输出目录已在 `.gitignore` 里。
 - 不向 Kiroween / Devpost 提交任何内容；积分申请状态与开发无关。
 
 ## 3. 数据与隐私
 
-- ANPR 数据只用脱敏后的版本；脱敏工具见源仓库 `scripts/anonymize_revision_events.py`。
-- 车牌哈希、车道号等标识只出现在本地数据目录，不进 git、不进日志。
+- ANPR 原始记录与元数据留在数据提供方，受隐私约束；公开版配置用通用卡口标识，接口检查用合成数据（`examples/generate_synthetic_events.py`）；复现论文数字需授权数据。
+- 车牌哈希、车辆标识等只出现在本地数据目录，不进 git、不进日志。
 - Binance 数据按源仓库 README 各自下载，不随库分发；衍生结果的 CC BY-NC-SA 4.0 说明保留。
 
 ## 4. 测试与复现

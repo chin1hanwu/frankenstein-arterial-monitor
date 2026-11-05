@@ -2,21 +2,21 @@
 # 复制为 config/local.yaml 后填写真实路径。local.yaml 不提交。
 # 这里只放路径与超参，不放密钥与真实数据。
 
-# 两个源仓库的本地路径（clone 到本仓库旁边；只引用，不复制代码）
+# 两个开源仓库的本地路径（clone 到本仓库旁边；只引用，不复制代码）
 paths:
-  anpr_repo: ../LSTM-MDN-git-ready        # ANPR 预测
-  filter_repo: ../wake-up-overshoot       # 唤醒滤波
+  anpr_repo: ../availability-aware-anpr-forecasting  # ANPR 预测（MIT）
+  filter_repo: ../wake-up-overshoot                  # 唤醒滤波（Apache-2.0）
 
-# 数据目录（可用环境变量覆盖：LSTM_MDN_DATA_DIR、BINANCE_RAW）
+# 数据目录（ANPR 输入路径由开源仓库的 study_config.yaml 指定；BINANCE_RAW 可用环境变量覆盖）
 data:
-  anpr_dir: ../LSTM-MDN-git-ready/data    # boxue.csv / jianshe.csv（脱敏后）
+  anpr_config: ../availability-aware-anpr-forecasting/study_config.yaml  # plate1_path / plate2_path
   binance_raw: ../data/raw                # Binance aggTrades zip（自行下载）
 
 # ANPR 预测
 anpr:
   period_seconds: 300                      # 5 分钟周期，严格按边界切分
   coverage_target: 0.90                    # 门控发布覆盖率目标
-  # 模型选择在源仓库冻结：Snapshot Quantile GBDT（CRPS 8.364 s，见 docs/wiring.md §2）
+  # 模型选择在开源仓库冻结；服务 KPI 见 frozen_evaluation.py
 
 # 唤醒滤波
 filter:

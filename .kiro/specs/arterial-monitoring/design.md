@@ -18,8 +18,8 @@ orchestrator.pipeline.run_event_loop
 ### anpr_forecast（`src/anpr_forecast/`）
 
 - `interfaces.py`：`AvailabilityFeatures`（14 维）、`ForecastRequest`、`ForecastResult`（分位数、90% 区间）、`GateDecision`（发布 / 回退）。
-- 对照源仓库 `LSTM-MDN-git-ready`：`enhanced_data_processing.py`（特征与周期切分）、`revision_models.py`（SnapshotMDN / RecurrentMDN / Quantile GBDT）、`revision_metrics.py`（CRPS / NLL / PIT / Pinball）、`gate_selectivity.py`（门控）。
-- 周期 300 s；环境变量 `LSTM_MDN_DATA_DIR`。
+- 对照开源仓库 `availability-aware-anpr-forecasting`：`data_processing.py`（特征与周期切分）、`forecast_models.py`（快照 / 循环混合密度网络）、`probabilistic_metrics.py`（概率评分）、`experiment_runner.py`（开发阶段）、`frozen_evaluation.py`（冻结评测与服务 KPI）。
+- 周期 300 s；输入路径由 `study_config.yaml` 的 `plate1_path` / `plate2_path` 指定。
 
 ### wakeup_filter（`src/wakeup_filter/`）
 

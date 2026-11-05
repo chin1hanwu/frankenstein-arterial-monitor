@@ -15,7 +15,7 @@ from typing import Literal
 class AppConfig:
     """Runtime config, loaded from ``config/local.yaml``."""
 
-    anpr_repo: str  # local path of the LSTM-MDN-git-ready checkout
+    anpr_repo: str  # local path of the availability-aware-anpr-forecasting checkout
     filter_repo: str  # local path of the wake-up-overshoot checkout
     anpr_dir: str  # ANPR data dir (desensitised CSVs)
     binance_raw: str  # Binance aggTrades dir (downloaded separately)
