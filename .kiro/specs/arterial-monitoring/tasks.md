@@ -18,7 +18,7 @@
 - [ ] 1. 填 `config/local.yaml`：两个开源仓库的本地路径与数据目录
 - [ ] 2. 跑通两个源仓库各自的复现命令，确认基线可用
   - [x] 2.1 ANPR：`experiment_runner.py prepare` 与 `frozen_evaluation.py`（接口检查可用 `examples/generate_synthetic_events.py` 的合成数据）——2026-11-07 云会话验证通过：合成数据生成 + 10 个单元测试全部通过
-  - [ ] 2.2 滤波：`experiment/build.py` → `check_engine.py` → `run_experiment.py --synthetic-only`——2026-11-07 云会话：`build.py` 静态链接失败（沙箱缺静态库且文件系统只读装不上）；同日跟进：动态编译成功、check_engine 可见输出全 PASS，合成实验跑 65 分钟仍无输出（输出缓冲或卡住未定），待 HW 决定继续等 / 停掉重跑 / 就此收尾
+  - [ ] 2.2 滤波：`experiment/build.py` → `check_engine.py` → `run_experiment.py --synthetic-only`——2026-11-07 云会话：`build.py` 静态链接失败（沙箱缺静态库且文件系统只读装不上）；同日跟进：动态编译成功、check_engine 可见输出全 PASS，合成实验跑 65 分钟仍无输出（输出缓冲或卡住未定），待 HW 决定继续等 / 停掉重跑 / 就此收尾；HW 11:37 决定继续等，晚点再看结果
 - [ ] 3. 实现 `anpr_forecast.predict`：接 `forecast_models.py` 的模型接口，服务 KPI 见 `frozen_evaluation.py`
 - [ ] 4. 实现 `wakeup_filter.update`：接 `engine.cpp` 的 Python 封装与 `frozen_params.json`
 - [ ] 5. 实现 `orchestrator.pipeline.run_event_loop`：事件路由、周期关闭触发、监测输出汇总
