@@ -1,0 +1,17 @@
+{
+  "chart_a": {
+    "trips": 15,
+    "inside": 1.0
+  },
+  "chart_b_counts": {
+    "fallback: insufficient history": 29,
+    "published (model interval)": 1
+  },
+  "chart_c": {
+    "bins": 300,
+    "overshoot_flags": 0,
+    "longest_empty_run_s": 60,
+    "max_predicted": 19.760274680997593,
+    "max_observed": 34.0
+  }
+}

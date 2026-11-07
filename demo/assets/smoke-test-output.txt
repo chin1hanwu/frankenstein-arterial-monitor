@@ -1,0 +1,8 @@
+[PASS] exactly one output for the target period -- 1 for period 1551044700
+[PASS] output spans one 300 s period
+[PASS] output is labelled synthetic -- anpr: synthetic-only; not the paper's frozen path; events: synthetic
+[PASS] published interval is finite and ordered -- [47.68, 144.98]
+[PASS] monitor log has one line per closed period
+[PASS] filter stream matches one batch kernel call -- worst relative difference 0.0
+[PASS] period overshoot flag equals any per-bin flag in the period -- period False, bins False
+RESULT: PASS

@@ -189,11 +189,16 @@ def main():
     idx = ((times_ms - t_start) // BIN_MS).astype(int)
     counts = np.bincount(idx, minlength=n_bins).astype(int).tolist()
     state = FilterState(config=FilterConfig(method=METHOD, bin_width_ms=BIN_MS), predicted_rate=0.0)
-    stream_pred = []
+    bins = []
     for k, c in enumerate(counts):
-        r = backend.update(state, BinUpdate(bin_start=t_start + k * BIN_MS, event_count=c,
+        bin_start = t_start + k * BIN_MS
+        r = backend.update(state, BinUpdate(bin_start=bin_start, event_count=c,
                                             observed_rate=c / (BIN_MS / 1000.0)))
-        stream_pred.append(r.predicted_rate)
+        bins.append(dict(bin_start_ms=bin_start, event_count=c,
+                         observed_rate=c / (BIN_MS / 1000.0),
+                         predicted_rate=r.predicted_rate, overshoot=r.overshoot,
+                         in_target=target * 1000 <= bin_start < (target + PERIOD_SECONDS) * 1000))
+    stream_pred = [b["predicted_rate"] for b in bins]
     batch_pred = batch_predictions(
         Path(filter_repo) / "experiment" / "engine.exe", kernel_dir / "batch",
         counts, backend.initial_theta, backend.initial_V, backend.frozen(METHOD, BIN_MS), BIN_MS,
@@ -202,6 +207,17 @@ def main():
     all_ok &= check("filter stream matches one batch kernel call", worst == 0.0,
                     f"worst relative difference {worst}")
     results["stream_vs_batch_worst_rel_diff"] = worst
+    target_bins = [b for b in bins if b["in_target"]]
+    if target_out:
+        any_flag = any(b["overshoot"] for b in target_bins)
+        all_ok &= check("period overshoot flag equals any per-bin flag in the period",
+                        target_out[0].overshoot == any_flag,
+                        f"period {target_out[0].overshoot}, bins {any_flag}")
+    (out_dir / "filter_bins.json").write_text(
+        json.dumps(dict(labels="synthetic only", bin_ms=BIN_MS, method=METHOD,
+                        target_period_start=target, bins=bins), indent=1),
+        encoding="utf-8")
+    results["target_overshoot_bins"] = sum(b["overshoot"] for b in target_bins)
     results["all_passed"] = bool(all_ok)
     (out_dir / "last_run.json").write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
     print("RESULT:", "PASS" if all_ok else "FAIL")
