@@ -41,6 +41,14 @@ ANPR 过车记录（上游 plate1 / 下游 plate2，study_config.yaml 指定）
 | 已核实基准 | 论文报告的基准（私有仓库 README §7；公开版 README 不含数字表，复现需授权数据）：最优模型 Snapshot Quantile GBDT，CRPS 8.364 s，覆盖率 0.902，平均宽度 58.4 s；门控保留 74.9% 周期，覆盖率 0.918，平均宽度 59.1 s；CPU 推断时延 < 5.5 ms。R3 返修更新过部分数字，引用前以最新 R3 包为准 |
 | 环境 | Python 3.9，scikit-learn 1.6.1，PyTorch 2.7.1（公开版报告环境）；`docs/experiment_protocol.md` 为执行顺序与数据使用边界；测试用 `python -m unittest discover -s tests` |
 
+**骨架实现说明（合成数据，非冻结路径）**
+
+- 实现：`src/anpr_forecast/synthetic.py` 的 `SyntheticForecaster`，经 `interfaces.set_predictor` 注册为 `predict` 的后端。只调用公开函数（`load_matched_data`、`compute_rolling_features`、`create_trajectory_indexed_dataset`、`train_density_model`、`predict_density`、`truncated_mixture_quantile`），在合成事件上训练快照 MDN。数据由源仓库的 `examples/generate_synthetic_events.py` 生成到本仓库的 `outputs/`，源仓库不被写入。
+- 冻结路径未运行。`experiment_runner.py prepare` 的计数校验要求论文计数（79113 / 16943 / 16950 个样本，2010 / 350 / 402 个周期，见 `experiment_config.yaml` 的 `expected_split`），合成数据达不到。本骨架不修改该校验。
+- 接口变更：`ForecastRequest.history`（前 29 行特征，最早在前，可选）、`ForecastResult.provenance`（可选标签）、`set_predictor`。所有合成输出的 `provenance` 含 `synthetic-only; not the paper's frozen path`。
+- 门控阈值只在验证集上选取：发布率最高且验证覆盖率不低于 0.90 的组合；候选网格 q_R ∈ {0, 0.1, 0.2, 0.3, 0.5}（R_comp 分位数），q_rho ∈ {0.5, 0.7, 0.9, 1.0}（第 3 列 / 300 的分位数）。无组合达标时全部回退至训练先验 Normal(mean, sd)。
+- **待 HW 确认：`rho_t` 的定义。** 公开代码的门控输入是特征矩阵第 3 列（列名 `bar_y`，周期内完成行程的平均行程时间）除以 300，即 `frozen_evaluation.py` 约第 907–908 行与 `experiment_runner.py` 约第 1466–1467 行的计算，不是在途比。骨架按此计算，并命名为 `bar_y_over_300`，不称为在途比。`AvailabilityFeatures.rho_t` 在合成路径中为 NaN。是否改用在途比，待 HW 确认。
+
 ## 3. 唤醒滤波：输入 / 输出 / 衔接点
 
 来源仓库：`wake-up-overshoot`（开源，Apache-2.0；`results/` 里 Binance 衍生结果为 CC BY-NC-SA 4.0）。
@@ -52,6 +60,14 @@ ANPR 过车记录（上游 plate1 / 下游 plate2，study_config.yaml 指定）
 | 输出 | 每箱预测速率；越率判断：恢复后的预测是否超过恢复速率（按 κ 区域）；合成实验结论 H1–H3 与真实数据结论 R1–R3 见 `results/results.json` |
 | 衔接点 | 编排层按箱宽把事件分箱后调用 `update(state, events)`（见 `src/wakeup_filter/interfaces.py`），拿到 `FilterResult`（预测速率 + 越率标记 + 区域）；真实数据需另行下载 Binance aggTrades（`BINANCE_RAW`，默认 `../data/raw`），数据不随库分发 |
 | 环境 | Python ≥ 3.10（numpy、scipy、pandas、matplotlib、psutil），C++17 编译器（`g++ -O2 -std=c++17 -static`） |
+
+**骨架实现说明**
+
+- 实现：`src/wakeup_filter/kernel.py` 的 `KernelBackend`，纯标准库，逐箱调用 `experiment/engine.exe`（二进制协议与 `engine.py` 的 `run`、`engine.cpp` 的 `gaussian` 一致）；二进制输入输出写到骨架侧的工作目录，不写源仓库。经 `set_backend` 注册。
+- 状态：`FilterState` 新增 `theta`、`V`、`silent_seconds`，由 `update` 原地更新；新流从冻结初值开始（`frozen_params.json` 的 `initial_theta`、`initial_V`）。配置按 (方法, 箱宽) 从 `frozen_params.json` 的 `selected` 中取（5 方法 × 4 箱宽 = 20 组）。
+- 逐箱调用与整段批处理结果逐位一致（5 个方法，多组静默与突发模式，相对误差为 0）。
+- `FilterConfig.kappa` 是越率交叉指数，按合成 cell 计算：不低于 ln10 为 `crossing`（越率区），不高于 −ln10 为 `no-crossing`（不越区），其余为 `transition`（过渡区）。它与 OU_I 的均值回复速率同名但不是同一个量，OU_I 的 κ 取自冻结参数。流式调用没有 κ 时，区域记为 `unclassified`。
+- **待 HW 确认：越率在线标记。** 源仓库只给出离线的 κ 区域，没有在线标记。骨架的定义是：某个有事件的箱，若其前面连续静默不少于 5 s（合成网格的最短静默长度），且该箱之后的预测速率超过该箱的观测速率，则标记为越率。
 
 ## 4. 编排：事件流向
 
@@ -72,6 +88,15 @@ ANPR 过车记录（上游 plate1 / 下游 plate2，study_config.yaml 指定）
 
 编排层不做模型计算，只做三件事：路由、汇总、记日志。主循环骨架见 `src/orchestrator/pipeline.py`（`run_event_loop`，待实现）。
 
+**骨架实现说明（`run_event_loop`）**
+
+- 事件契约：`anpr_observation` 的时间戳为 300 s 边界（epoch 秒），`payload["features"]` 为该边界的 `AvailabilityFeatures`；`point_event` 的时间戳为毫秒。
+- 周期语义：时钟到达边界 B 时打开 [B, B+300)，并以 B 为止的 30 行特征历史调用 `predict`；时钟到达 B+300 时输出一条 `MonitoringOutput`，并追加到 `<log_dir>/monitor.jsonl`。
+- 排序约束：事件须按时间排序；边界 B 的特征行须先于时间不早于 B 的点事件到达，否则报错。末尾未闭合的周期不输出。
+- 发布规则：门控发布时输出模型区间；回退时不输出区间（`publish_on_fallback: false`），为 true 时输出先验区间。
+- 滤波：按 `bin_width_ms` 逐箱调用，包括空箱，以便计量静默。周期内任一箱越率，该周期的 `overshoot` 为真。
+- 输出标签：`MonitoringOutput.provenance` 同时记录 ANPR 的 provenance 与 `event_source`（例如 `synthetic`）。
+
 ## 5. 缺口清单（仍需用户补齐）
 
 | # | 缺口 | 说明 |
@@ -83,6 +108,9 @@ ANPR 过车记录（上游 plate1 / 下游 plate2，study_config.yaml 指定）
 | 5 | 告警通道 | 越率标记与门控回退发生时通知谁、用什么通道，未定 |
 | 6 | Kiro 额度 | 积分已获批并于 2026-11-07 兑换成功（4,000 Kiro Credits，有效期至 12 月 31 日）；规格任务循环消耗额度，`agent` 型钩子默认关闭，见 `.kiro/hooks/` |
 | 7 | 投稿目录隔离 | TR-C / SPL 稿件留在私有仓库，本仓库不放稿件；后续若开源仓库结构变化，需同步更新 §2 的模块对照 |
+| 8 | `rho_t` 定义 | 公开代码的门控输入是特征第 3 列 /300（`bar_y/300`），不是在途比。骨架按公开代码计算并命名为 `bar_y_over_300`；采用哪种定义待 HW 确认（见 §2） |
+| 9 | 越率在线标记 | 源仓库只有离线的 κ 区域，没有在线越率标记。骨架使用 §3 的定义，待 HW 确认 |
+| 10 | 冻结 ANPR 路径 | 论文计数校验使合成数据无法运行冻结路径。骨架只提供合成数据版 `predict`（见 §2），不产生论文意义上的结果；真实数据需授权 |
 
 ## 6. 引用核对
 

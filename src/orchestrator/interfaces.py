@@ -21,11 +21,21 @@ class AppConfig:
     binance_raw: str  # Binance aggTrades dir (downloaded separately)
     log_dir: str = "outputs/logs"
     publish_on_fallback: bool = False
+    # One filter stream per run. The monitor uses one method and one bin width.
+    filter_method: str = "E"
+    bin_width_ms: int = 1000
+    # Label for where the events came from, copied into every output (e.g. "synthetic").
+    event_source: str = "unspecified"
 
 
 @dataclass
 class Event:
-    """One incoming event, of either kind."""
+    """One incoming event, of either kind.
+
+    ``anpr_observation``: ``timestamp`` is an epoch-seconds period boundary.
+    ``payload["features"]`` holds the period's ``AvailabilityFeatures``, known at that boundary.
+    ``point_event``: ``timestamp`` is epoch milliseconds.
+    """
 
     kind: Literal["anpr_observation", "point_event"]
     timestamp: int  # epoch seconds (ANPR) or ms (point events)
@@ -38,7 +48,8 @@ class MonitoringOutput:
 
     period_start: int
     period_end: int
-    published: bool  # False when the gate fell back to the prior
+    published: bool  # False when the gate fell back to the prior (and the prior was not published)
     interval_low: float | None = None  # 90% interval, when published
     interval_high: float | None = None
     overshoot: bool = False  # wake-up filter overshoot flag for the period
+    provenance: str = ""  # labels the ANPR and filter backends, e.g. "synthetic-only"
