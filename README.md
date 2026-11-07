@@ -1,16 +1,16 @@
-# Frankenstein Arterial Monitor（骨架）
+# Frankenstein Arterial Monitor
 
-Kiroween 2026 Frankenstein 参赛项目的开工骨架：把三件本来不兼容的东西缝进一个实时干道监测应用——
+Kiroween 2026 Frankenstein 参赛项目：把三件本来不兼容的东西缝进一个实时干道监测应用——
 
 1. **ANPR 概率行程时间预测**（开源仓库 `availability-aware-anpr-forecasting`，MIT）
 2. **显式高斯点过程唤醒滤波**（开源仓库 `wake-up-overshoot`，Apache-2.0）
 3. **Kiro 多智能体编排**（本仓库 `/.kiro`：规格、开发守则、自动化钩子）
 
-> 状态：这是骨架，不是可运行的应用。实时数据接入、实时监测循环、联合评估都还没做，按 `docs/wiring.md` 里的缺口清单继续开发。
+> 状态：已提交 Kiroween 2026（[Devpost 项目页](https://devpost.com/software/frankenstein-arterial-monitor)）。合成数据端到端已跑通：predict、滤波 update、事件循环与冒烟测试（37,571 个事件、30 个周期）均通过；全部演示数据均为合成数据，不含真实车牌记录。冻结评估路径（论文精确拆分）未做，见 `docs/wiring.md` §5 的局限性说明。
 >
-> 积分已获批并兑换成功（4,000 Kiro Credits，2026 年 11 月 7 日兑换，有效期至 12 月 31 日）；本仓库不向 Kiroween 或 Devpost 提交任何内容。
+> 积分已获批并兑换成功（4,000 Kiro Credits，2026 年 11 月 7 日兑换，有效期至 12 月 31 日）。
 >
-> 本仓库是私有的；两个源仓库都是开源的，接线对照以开源版为准。TR-C 返修（R2/R3）与投稿目录只留在私有仓库 `LSTM-MDN-git-ready`，不接线。
+> 本仓库是公开的；两个源仓库都是开源的，接线对照以开源版为准。TR-C 返修（R2/R3）与投稿目录只留在私有仓库 `LSTM-MDN-git-ready`，不接线。
 
 ## 三部分速览
 
@@ -66,6 +66,6 @@ python scripts/check_interfaces.py
 ## 守则要点
 
 - 接口先行：改实现之前先改 `src/*/interfaces.py` 与 `docs/wiring.md`，保持三者一致。
-- 不把未发表的工作内容（稿件、未公开数据、投稿目录）放进本仓库；本仓库保持私有。
+- 不把未发表的工作内容（稿件、未公开数据、投稿目录）放进本仓库；本仓库已公开。
 - ANPR 原始记录留在数据提供方，公开版只用通用卡口标识与合成数据做接口检查；点过程真实数据（Binance aggTrades）不随库分发，各自下载。
 - 钩子说明：`command` 型钩子不消耗额度，`agent` 型钩子会开启新的 agent 循环，默认只开了一个且处于关闭状态（见 `.kiro/hooks/`）。
