@@ -18,7 +18,7 @@
 - [ ] 1. 填 `config/local.yaml`：两个开源仓库的本地路径与数据目录
 - [ ] 2. 跑通两个源仓库各自的复现命令，确认基线可用
   - [x] 2.1 ANPR：`experiment_runner.py prepare` 与 `frozen_evaluation.py`（接口检查可用 `examples/generate_synthetic_events.py` 的合成数据）——2026-11-07 云会话验证通过：合成数据生成 + 10 个单元测试全部通过
-  - [ ] 2.2 滤波：`experiment/build.py` → `check_engine.py` → `run_experiment.py --synthetic-only`——2026-11-07 云会话：`build.py` 静态链接失败（沙箱缺静态库且文件系统只读装不上）；同日跟进：动态编译成功、check_engine 可见输出全 PASS，合成实验跑 65 分钟仍无输出（输出缓冲或卡住未定），待 HW 决定继续等 / 停掉重跑 / 就此收尾；HW 11:37 决定继续等，晚点再看结果；12:46 定时复查与 12:52 同窗口重试均被 Kiro 登录页挡住（云端浏览器登录已过期），实验状态自 11:37 后未知，需 HW 重新登录后复查
+  - [x] 2.2 滤波：`experiment/build.py` → `check_engine.py` → `run_experiment.py --synthetic-only`——2026-11-07 云会话验证通过：`build.py` 静态链接失败（沙箱缺静态库且只读），改动态编译成功、check_engine 19 项全 PASS；合成实验跑完（results.json 已写 runs/reproduction/）：H1 73/73 全区域成立，H2 2/24（仅非越区、dt=0.001、L=300/1200），H3 10/10 全区域成立（均为 control cells）；real-data 阶段因 --synthetic-only 跳过；三仓库 git 均 clean。注：首轮前台运行在 30 分钟工具时限处被中断（已写 1,132/1,184 个任务文件），后从已有文件续跑完成；build_info.json 仍记旧的静态失败，属 stale
 - [ ] 3. 实现 `anpr_forecast.predict`：接 `forecast_models.py` 的模型接口，服务 KPI 见 `frozen_evaluation.py`
 - [ ] 4. 实现 `wakeup_filter.update`：接 `engine.cpp` 的 Python 封装与 `frozen_params.json`
 - [ ] 5. 实现 `orchestrator.pipeline.run_event_loop`：事件路由、周期关闭触发、监测输出汇总
